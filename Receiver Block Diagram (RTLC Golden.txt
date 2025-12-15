@@ -1,0 +1,19 @@
+Receiver Block Diagram (RTL/C Golden Alignment)
+
+sync_block → capture buffer: consumes adc1/adc2 CP+data, finds best symbol start (auto-corr of CP vs tail), captures 80 samples.
+CFO_estimator_cp_mrc (nco_phase_ctrl inside): CP correlation across both antennas; outputs eps_hat (CFO norm) and phase_inc (scaled angle step).
+CFO_rotator (can bypass via DEBUG_BYPASS_ROT): applies e^{±j·phase} per sample using cordic_rotator; phase accumulated by nco_phase_ctrl (acc − phase_inc; optional negate in rotator).
+FFT_64pt: parallel complex FFT for each antenna; output reordered internally (addr debug in log).
+mimo_zf_2x2: multiplies FFT outputs by preloaded H_inv (from golden_h_inv.hex), yielding X1/X2.
+CPE_tracker (residual phase loop): computes average constellation angle error over 64 tones via cordic_vectoring, outputs phase_err → feeds back to nco_phase_ctrl (CPE mode) to update phase accumulator for next symbol rotation.
+QPSK_demap_mimo: hard decisions to bits; compared against golden_final_out.hex in TB.
+Testbench tb_top_receiver: drives golden_adc_time.hex, loads golden FFT/ZF/pt vectors for compares; gathers mismatch stats.
+Top-level glue: Top_level_receiver instantiates sync/CFO/NCO/rot/FFT/ZF/CPE/demap; parameters NEGATE_PHASE, DEBUG_BYPASS_ROT.
+Data/Control Flow (per symbol)
+
+ADC stream → sync detects start → capture 80.
+CFO_estimator computes eps_hat; NCO sets phase_inc.
+Rotator optionally applies CFO correction sample-by-sample during playback to FFT.
+FFT on both antennas.
+ZF multiply by H_inv → equalized subcarriers.
+CPE_tracker averages phase error, updates NCO for next symbol; demap bits.

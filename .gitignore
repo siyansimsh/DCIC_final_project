@@ -1,0 +1,23 @@
+# Vivado generated files
+*.jou
+*.log
+*.str
+*.pb
+*.dcp
+*.bit
+*.wdb
+*.wcfg
+*.os
+*.jou
+*.log
+*.wdm
+*.zip
+
+# Folders to ignore
+.Xil/
+.ip_user_files/
+*.cache/
+*.hw/
+*.sim/
+*.runs/
+*.ip_user_files/
