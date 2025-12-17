@@ -94,6 +94,16 @@ module cpe_tracker #(
     (* ram_style = "block" *) reg signed [DATA_W-1:0] ram_x2_re [0:127];
     (* ram_style = "block" *) reg signed [DATA_W-1:0] ram_x2_im [0:127];
 
+    // Dedicated RAM write port (reset-free for RAM inference)
+    always @(posedge clk) begin
+        if (rst_n && in_valid) begin
+            ram_x1_re[{bank, cnt}] <= X1_re;
+            ram_x1_im[{bank, cnt}] <= X1_im;
+            ram_x2_re[{bank, cnt}] <= X2_re;
+            ram_x2_im[{bank, cnt}] <= X2_im;
+        end
+    end
+
     reg signed [PHASE_W-1:0] avg_err_reg; // 算好的平均誤差
 
     // Write & phase accumulation
@@ -106,12 +116,6 @@ module cpe_tracker #(
             phase_err <= 0;
             avg_err_reg <= 0;
         end else if (in_valid) begin
-            // 3.1 寫入 RAM (存原始資料)
-            ram_x1_re[{bank, cnt}] <= X1_re;
-            ram_x1_im[{bank, cnt}] <= X1_im;
-            ram_x2_re[{bank, cnt}] <= X2_re;
-            ram_x2_im[{bank, cnt}] <= X2_im;
-
             // 3.2 累加誤差
             if (cnt == 0) begin
                 sum_err <= current_total_diff; // 第一筆直接存

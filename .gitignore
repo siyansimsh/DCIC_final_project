@@ -1,23 +1,45 @@
-# Vivado generated files
+# Vivado / FPGA generated files
 *.jou
 *.log
 *.str
 *.pb
 *.dcp
+*.rpt
+*.xdc.user
 *.bit
+*.bin
+*.ltx
+*.xpr.user
+
+# Vivado simulation / debug
 *.wdb
 *.wcfg
-*.os
-*.jou
-*.log
 *.wdm
-*.zip
 
-# Folders to ignore
-.Xil/
-.ip_user_files/
-*.cache/
-*.hw/
-*.sim/
-*.runs/
-*.ip_user_files/
+# Vivado generated directories (may appear at repo root or nested)
+**/.Xil/
+**/*.cache/
+**/*.hw/
+**/*.ip_user_files/
+**/*.runs/
+**/*.sim/
+
+# Waveforms / dumps
+*.vcd
+wave/
+wave_*/
+
+# Common simulator build outputs
+simv
+simv/
+sim_top/
+csrc/
+
+# Local build artifacts (C / misc)
+*.exe
+*.o
+*.out
+
+# OS cruft
+Thumbs.db
+Desktop.ini

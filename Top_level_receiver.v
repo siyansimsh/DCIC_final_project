@@ -87,11 +87,32 @@ module mimo_ofdm_rx_top #(
     reg       played_once;     // prevent multiple replays of same buffer
     reg       cfo_ready;       // latched when estimator finishes
 
-    // Encourage BRAM inference for the symbol buffer
-    (* ram_style = "block" *) reg signed [DATA_W-1:0] buf1_re [0:79];
-    (* ram_style = "block" *) reg signed [DATA_W-1:0] buf1_im [0:79];
-    (* ram_style = "block" *) reg signed [DATA_W-1:0] buf2_re [0:79];
-    (* ram_style = "block" *) reg signed [DATA_W-1:0] buf2_im [0:79];
+    // Symbol buffer memory
+    // NOTE: Current access pattern uses asynchronous reads; request distributed RAM to avoid
+    // BRAM inference warnings while keeping existing cycle behavior unchanged.
+    reg signed [DATA_W-1:0] buf1_re [0:79];
+    reg signed [DATA_W-1:0] buf1_im [0:79];
+    reg signed [DATA_W-1:0] buf2_re [0:79];
+    reg signed [DATA_W-1:0] buf2_im [0:79];
+
+    // Dedicated buffer memory write port (reset-free for RAM inference)
+    always @(posedge clk) begin
+        if (rst_n) begin
+            if (sync_symbol_start) begin
+                if (sync_valid) begin
+                    buf1_re[0] <= sync1_re;
+                    buf1_im[0] <= sync1_im;
+                    buf2_re[0] <= sync2_re;
+                    buf2_im[0] <= sync2_im;
+                end
+            end else if (collecting && sync_valid) begin
+                buf1_re[buf_wr_idx] <= sync1_re;
+                buf1_im[buf_wr_idx] <= sync1_im;
+                buf2_re[buf_wr_idx] <= sync2_re;
+                buf2_im[buf_wr_idx] <= sync2_im;
+            end
+        end
+    end
 
     // Capture raw (post-sync) samples
     always @(posedge clk or negedge rst_n) begin
@@ -116,10 +137,6 @@ module mimo_ofdm_rx_top #(
                 cfo_ready <= 0;
 
                 if (sync_valid) begin
-                    buf1_re[0] <= sync1_re;
-                    buf1_im[0] <= sync1_im;
-                    buf2_re[0] <= sync2_re;
-                    buf2_im[0] <= sync2_im;
                     buf_wr_idx <= 7'd1;
                     captured_count <= 7'd1;
                     play_len <= 7'd1;
@@ -127,10 +144,6 @@ module mimo_ofdm_rx_top #(
 
             end else if (collecting && sync_valid) begin
                 // normal capture path
-                buf1_re[buf_wr_idx] <= sync1_re;
-                buf1_im[buf_wr_idx] <= sync1_im;
-                buf2_re[buf_wr_idx] <= sync2_re;
-                buf2_im[buf_wr_idx] <= sync2_im;
                 captured_count <= buf_wr_idx + 1'b1;
 
                 if (buf_wr_idx == 7'd79) begin

@@ -20,14 +20,25 @@ module fft_64pt (
     // =========================================================
     // 1) Ping-pong buffers for input/output storage
     // =========================================================
-    // Encourage BRAM inference for the ping-pong buffers
-    (* ram_style = "block" *) reg signed [15:0] mem_re [0:127];
-    (* ram_style = "block" *) reg signed [15:0] mem_im [0:127];
+    // Ping-pong buffers
+    // NOTE: Read port is asynchronous (combinational), so request distributed RAM to avoid
+    // BRAM inference warnings while keeping existing behavior unchanged.
+    (* ram_style = "distributed" *) reg signed [15:0] mem_re [0:127];
+    (* ram_style = "distributed" *) reg signed [15:0] mem_im [0:127];
 
     reg bank_in;   // bank being written by loader
     reg bank_calc; // bank recently computed and visible to reader
     reg [6:0] load_cnt; // counts 0..63 samples
     reg input_ready_pulse;
+
+    // Dedicated memory write port (reset-free for RAM inference)
+    always @(posedge clk) begin
+        if (rst_n && i_load_valid) begin
+            // store in sequential order; we will bit-reverse in compute stage
+            mem_re[{bank_in, load_cnt[5:0]}] <= i_load_re;
+            mem_im[{bank_in, load_cnt[5:0]}] <= i_load_im;
+        end
+    end
 
     // Proper bit-reversal helper
     function [5:0] bit_reverse;
@@ -94,9 +105,6 @@ module fft_64pt (
         end else begin
             input_ready_pulse <= 0;
             if (i_load_valid) begin
-                // store in sequential order; we will bit-reverse in compute stage
-                mem_re[{bank_in, load_cnt[5:0]}] <= i_load_re;
-                mem_im[{bank_in, load_cnt[5:0]}] <= i_load_im;
                 if (load_cnt == 63) begin
                     load_cnt <= 0;
                     bank_in <= ~bank_in;
