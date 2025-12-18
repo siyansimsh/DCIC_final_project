@@ -2,6 +2,12 @@
 
 module tb_cpe_tracker;
 
+    // VCD dump for GTKWave
+    initial begin
+        $dumpfile("tb_cpe_tracker.vcd");
+        $dumpvars(0, tb_cpe_tracker);
+    end
+
     // 參數設定
     parameter DATA_W = 16;
     parameter PHASE_W = 16;

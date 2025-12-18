@@ -2,6 +2,12 @@
 
 module tb_mimo_zf;
 
+    // VCD dump for GTKWave
+    initial begin
+        $dumpfile("tb_mimo_zf.vcd");
+        $dumpvars(0, tb_mimo_zf);
+    end
+
     // ============================================================
     // 1. 參數設定
     // ============================================================

@@ -2,6 +2,12 @@
 
 module tb_top_receiver;
 
+    // VCD dump for GTKWave
+    initial begin
+        $dumpfile("tb_top_receiver.vcd");
+        $dumpvars(0, tb_top_receiver);
+    end
+
     // 1. 參數設定
     parameter DATA_W = 16;
     parameter CLK_PERIOD = 10; // 100MHz

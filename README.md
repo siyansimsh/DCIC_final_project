@@ -41,6 +41,10 @@
 - Utilization（Post-Implementation）：[docs/images/utilization.png](docs/images/utilization.png)
 - Messages/DRC 摘要（可選）：[docs/images/messages_drc.png](docs/images/messages_drc.png)
 
+### Simulation / Verification（GTKWave 波形證據）
+
+- RTL 波形驗證寫法與截圖清單：[docs/simulation_verification_waveforms.md](docs/simulation_verification_waveforms.md)
+
 > 注意：本 repo 目前使用 **placeholder XDC** 進行靜態時序分析（STA）。若要上板/做真實 signoff，必須改成真實的板端 pinout（LOC）、IOSTANDARD 與 I/O delay 假設。
 
 ---
